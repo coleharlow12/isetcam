@@ -333,11 +333,22 @@ expTimes      = sensorGet(sensor,'expTimes');
 % Get the data, either as volts or digital values.
 % Indicate which on return
 img       = ipGet(ip,'input');
-sensorMax = ipGet(ip,'maximum sensor value');
+inputImg = img; % save for debugging
+% We might have gotten either volts or dv.
+% Despite comment above I don't think we know which? So...
+if isfield(sensor.data,'dv') && ~isempty(sensor.data.dv)
+    sensorMax = sensorGet(sensor,'max digital value');
+else
+    sensorMax = ipGet(ip,'maximum sensor value');
+end
 satMax    = satPercentage*sensorMax;
 
 % Set values > saturatation value to -1 in the img array
-img(img > satMax) = 0;
+%   so that we know to set them to sensor max later
+% ISSUE: img input may be dv while satMax is in volts
+%   if nbits (quantization) hasn't been set for the sensor
+%   that means all values go to NaN!
+img(img > satMax) = -1;
 
 %% Estimate a sensor value accounting for all of the exposures
 %
@@ -347,19 +358,16 @@ switch combinationMethod
         [img,loc] = max(img,[],3);
         expByLoc  = expTimes(loc);
         img = img ./ expByLoc;
-        %% DJC Maybe we have to normalize here, or we get over-saturated values?
+
+        % Put back saturated highlights
+        img(img < 0) = sensorMax/min(expTimes);
+        % Now we need to normalize our data back to a single sensor image value
+        % this doesn't work well? ip = ipSet(ip,'sensorMax',sensorMax/min(expTimes));
+        img = img * min(expTimes);
     otherwise
         error('Unknown combination method: %s\n', combinationMethod)
 end
 
-% The largest value we can ever get
-% DJC I don't think this works right for all expTimes, as we start
-% returning massive signal values and Adaptive doesn't normalize. So I've
-% changed this to scale to the original sensor voltage swing (only affects
-% bracketing, which I don't think anyone except me is currently using:)
-%ip = ipSet(ip,'sensorMax',sensorMax/min(expTimes));
-img = img ./ max(img,[],'all'); % scale
-ip = ipSet(ip, 'sensorMax', max(img,[],'all'));
 ip = ipSet(ip,'input',img);
 
 end
