@@ -1,4 +1,4 @@
-function [mRGB,stdRGB] = macbethPatchData(obj,mLocs,delta,fullData,dataType)
+function [mRGB,stdRGB] = macbethPatchData(obj,mLocs,delta,fullData,dataType,height,width)
 % Return a cell array with the linear RGB values from an ip or sensor
 %
 %    [mRGB, stdRGB] = macbethPatchData(obj,mLocs,delta)
@@ -40,9 +40,9 @@ if ieNotDefined('delta'),   dataType = 'result'; end  % Default for vcimage
 if fullData  % The values from every location in each of the 24 patches
     % There is some chance this works for every data type because mRGB is a
     % cell array.
-    mRGB = cell(1,24);
+    mRGB = cell(1,height*width);
     stdRGB = [];   % Haven't worked out the std dev in this case yet.
-    for ii = 1:24
+    for ii = 1:(height*width)
         theseLocs = macbethROIs(mLocs(:,ii),delta); % List locs for this patch
         mRGB{ii} = vcGetROIData(obj,theseLocs,dataType);
         % stdRGB(ii,:) = nanstd(mRGB{ii});
@@ -58,9 +58,9 @@ else  % Mean values from each patch
             else, nWave = oiGet(obj,'nwave');
             end
             
-            mRGB = zeros(24,nWave);
-            stdRGB = zeros(24,nWave);
-            for ii = 1:24
+            mRGB = zeros(height*width,nWave);
+            stdRGB = zeros(height*width,nWave);
+            for ii = 1:(height*width)
                 theseLocs = macbethROIs(mLocs(:,ii),delta);  % List locs for this patch
                 
                 % The sensor case will have NaNs
@@ -70,9 +70,9 @@ else  % Mean values from each patch
                 
             end
         case {'sensor','vcimage'}
-            mRGB   = zeros(24,3);  % This should be 24 x nSensors, not 24 x 3
-            stdRGB = zeros(24,3);  % This should be 24 x nSensors
-            for ii = 1:24
+            mRGB   = zeros(height*width,3);  % This should be 24 x nSensors, not 24 x 3
+            stdRGB = zeros(height*width,3);  % This should be 24 x nSensors
+            for ii = 1:(height*width)
                 theseLocs = macbethROIs(mLocs(:,ii),delta);  % List locs for this patch
                 
                 % The sensor case will have NaNs

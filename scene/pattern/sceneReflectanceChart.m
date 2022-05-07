@@ -93,11 +93,16 @@ else
     nSamples = size(reflectance,2);
 end
 
-% Spatial arrangement
-r = ceil(sqrt(nSamples)); c = ceil(nSamples/r);
+% Spatial arrangement. It works by finding the first square number to put
+% them into
+% This would need be changed to make charts of nonsquare shape
+% It doesn't necessarily make them a square just an object as close as
+% possible to a square
+r = ceil(sqrt(nSamples)); 
+c = ceil(nSamples/r);
 
-% reflectance is in wave x surface format.  We fill up the end of the matrix with
-% gray surface reflectances.
+% reflectance is in wave x surface format.  ***We fill up the end of the matrix with
+% gray surface reflectances***
 if grayFlag
     % Create a column of gray surfaces, from 100% reflectance scaling down
     % in steps of 0.5 (0.3 log unit)

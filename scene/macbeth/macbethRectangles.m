@@ -1,4 +1,4 @@
-function [mLocs,delta,pSize] = macbethRectangles(cornerPoints)
+function [mLocs,delta,pSize] = macbethRectangles(cornerPoints,height,width)
 % Deprecated:  Use chartRectangles
 %
 % Calculate mid point of rectangles for an MCC from the corner points
@@ -54,7 +54,8 @@ mBrown = mBrown - offset;
 %  Black -> 6,0
 %  Blue ->  6,4
 %  Brown -> 0,4
-ideal = [6 6 0; 0 4 4];
+% ideal x,y coordinates of the corner patches
+ideal = [width width 0; 0 height height];
 current = [mBlack(:), mBlue(:), mBrown(:)];
 
 %  current = L * ideal
@@ -67,15 +68,22 @@ L = current*pinv(ideal);
 % (L*[2.5,1.5]') + offset(:)
 %
 % So now, we make up the coordinates of all 24 patches.  These are
-[X,Y] = meshgrid((0.5:1:5.5),(0.5:1:3.5));
+[X,Y] = meshgrid((0.5:1:width-0.5),(0.5:1:height-0.5));
 idealLocs = [X(:),Y(:)]';
 
 % Specialized for the MCC
 % The mLocs contains (rows,cols) of the center of the 24 patches. These are
 % from white (lower left) reading up the first col, and then back down to
 % the bottom of the 2nd column, starting at the gray, and reading up again
-mLocs = round(L*idealLocs + repmat(offset(:),1,24));
-flipIt = [4 3 2 1 8 7 6 5 12 11 10 9 16 15 14 13 20 19 18 17 24 23 22 21];
+%mLocs = round(L*idealLocs + repmat(offset(:),1,24));
+%flipIt = [4 3 2 1 8 7 6 5 12 11 10 9 16 15 14 13 20 19 18 17 24 23 22 21];
+%mLocs = mLocs(:,flipIt);
+flipIt = [];
+
+mLocs = round(L*idealLocs + repmat(offset(:),1,height*width));
+for iH = 1:width
+    flipIt = [flipIt,fliplr([(((iH-1)*height)+1):((iH)*height)])];
+end
 mLocs = mLocs(:,flipIt);
 
 % Build a square of a certain size around the point mLocs(:,N)
@@ -87,13 +95,13 @@ mLocs = mLocs(:,flipIt);
 if abs(cornerPoints(1,2) - cornerPoints(2,2)) > abs(cornerPoints(1,1) - cornerPoints(2,1))
     % In this case the col range exceeds the row range, so the
     % white->black dimension runs left-right in the image.
-    deltaX = round(abs(cornerPoints(1,2) - cornerPoints(2,2))/6);
-    deltaY = round(abs(cornerPoints(1,1) - cornerPoints(4,2))/4);
+    deltaX = round(abs(cornerPoints(1,2) - cornerPoints(2,2))/width);
+    deltaY = round(abs(cornerPoints(1,1) - cornerPoints(4,2))/height);
 else
     % In this case the row range exceeds the column range, and so
     % black-white is running up-down in the image.
-    deltaY = round(abs(cornerPoints(1,1) - cornerPoints(2,1))/6);
-    deltaX = round(abs(cornerPoints(1,2) - cornerPoints(4,2))/4);
+    deltaY = round(abs(cornerPoints(1,1) - cornerPoints(2,1))/width);
+    deltaX = round(abs(cornerPoints(1,2) - cornerPoints(4,2))/height);
 end
 
 % We want to pick out a square region that is within the size of the patch.

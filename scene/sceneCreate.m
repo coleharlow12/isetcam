@@ -9,7 +9,7 @@ function [scene,parms] = sceneCreate(sceneName,varargin)
 % scene. Generally, we model planar objects, such as a screen display (but
 % see below).
 %
-% The scene is located at some distance from the center of the optics, hasG
+% The scene is located at some distance from the center of the optics, has
 % a field of view, and a spectral radiance distribution.  There are
 % routines to handle depth as well that are partly implemented and under
 % development.  We plan to integrate this aspect of the modeling with PBRT.
@@ -189,6 +189,7 @@ sceneName = ieParamFormat(sceneName);
 scene.metadata = [];   % Metadata for machine learning apps
 
 %% Handle the Macbeth parameter cases here
+% Checks scene name for any of the below phrasses
 if strncmp(sceneName,'macbeth',5) || ...
         strcmp(sceneName,'default') || ...
         strcmp(sceneName,'empty')
@@ -196,8 +197,8 @@ if strncmp(sceneName,'macbeth',5) || ...
     blackBorder = false;
     if ~isempty(varargin), patchSize = varargin{1}; end  % pixels per patch
     if length(varargin) > 1, wave = varargin{2}; end     % wave
-    if length(varargin) > 2, surfaceFile = varargin{3}; end % Reflectances
-    if length(varargin) > 3, blackBorder = varargin{4}; end %
+    if length(varargin) > 2, surfaceFile = varargin{3}; end %Reflectances
+    if length(varargin) > 3, blackBorder = varargin{4}; end %To include black border or not
 end
 
 %%
@@ -241,6 +242,7 @@ switch sceneName
         % sceneCreate('reflectance chart',chartP);
         % There is always a gray strip at the right.
         
+        % Handles case when input data is a structure
         if ~isempty(varargin) && isstruct(varargin{1})
             chartP   = varargin{1};
             sFiles   = chartP.sFiles;     % Surface reflectance files
@@ -249,8 +251,8 @@ switch sceneName
             wave     = chartP.wave;       % Wavelength samples
             grayFlag = chartP.grayFlag;   % Add a gray strip column on right
             sampling = chartP.sampling;   % Sample with replacement
-        else
-            
+        
+        else  
             % Default surface files
             sFiles{1} = which('MunsellSamples_Vhrel.mat');
             sFiles{2} = which('Food_Vhrel.mat');
@@ -269,6 +271,8 @@ switch sceneName
             sampling = 'r'; % Sample with replacement
             
             if isempty(varargin)
+
+            %Handles case where data is input not as a structure
             else
                 pSize = varargin{1};
                 if length(varargin) > 1, sSamples = varargin{2}; end
@@ -655,9 +659,9 @@ scene = sceneSet(scene,'fov',1);
 
 end
 
-%----------------------------------
+%% Default scene Function is a Macbeth chart with D65 illuminant, patchSize 16
 function scene = sceneDefault(scene,illuminantType,patchSize,wave,surfaceFile,blackBorder)
-%% Default scene is a Macbeth chart with D65 illuminant, patchSize 16
+%
 %
 % sceneDefault(scene,'d65',patchSize,wave,surfaceFile,blackBorder)
 %
@@ -711,9 +715,8 @@ scene = sceneCreateMacbeth(macbethChartObject,lightSource,scene);
 
 end
 
-%--------------------------------------------------
+%% Default multispectral structure--------------------------------------------------
 function scene = sceneMultispectral(scene)
-%% Default multispectral structure
 
 scene = sceneSet(scene,'name','multispectral');
 scene = initDefaultSpectrum(scene,'multispectral');

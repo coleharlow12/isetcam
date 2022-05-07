@@ -1,4 +1,4 @@
-function macbethDrawRects(obj,onoff)
+function macbethDrawRects(obj,onoff,h,w)
 % Draw Macbeth CC rectangles from the stored cornerPoints
 %
 % Syntax:
@@ -51,7 +51,7 @@ switch onoff
         if isempty(cornerPoints), error('No chart corner points'); end
         
         % From the corner points, calculate the macbeth patch center locations.
-        rects = chartRectangles(cornerPoints,4,6,0.5);
+        rects = chartRectangles(cornerPoints,h,w,0.5);
         chartRectsDraw(obj,rects);
         
     case 'off'

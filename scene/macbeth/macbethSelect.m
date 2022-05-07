@@ -1,10 +1,10 @@
 function [pData, mLocs, pSize, cornerPoints, pStd] = ...
-    macbethSelect(obj,showSelection,fullData,cornerPoints)
+    macbethSelect(obj,showSelection,fullData,cornerPoints,height,width)
 % Deprecated:  Use chartXXX routines
 % Identify Macbeth color checker patch positions from window image
 %
 % Synopsis
-%  [pData mLocs, pSize, cornerPoints, pStd] =
+%  [pData, mLocs, pSize, cornerPoints, pStd] =
 %            macbethSelect(obj,showSelection,fullData,cornerPoints)
 %
 % Brief Description
@@ -131,12 +131,13 @@ if ieNotDefined('fullData'), fullData = 0; end
 % This should be a parameter
 queryUser = false;
 
-%% Corner points
+%% Finds/Selects/Inputs Corner points
 
 % To select the data, we start with the chart corner points.  They might be
 %   * Sent in
 %   * Attached to the object
 %   * We choose in the window
+
 switch lower(obj.type)
     case 'vcimage'
         dataType = 'result';
@@ -244,15 +245,15 @@ end
 %% Find rect midpoints and patch size.
 
 % mLocs are the 24 MCC patch middles in (row,col) format.
-[mLocs,delta,pSize] = macbethRectangles(cornerPoints);
+[mLocs,delta,pSize] = macbethRectangles(cornerPoints,height,width);
 
 % Get the mean RGB data or the full data from the patches in a cell array
 % The processor window is assumed to store linear RGB values, not gamma
 % corrected.
-[pData,pStd] = macbethPatchData(obj,mLocs,delta,fullData,dataType);
+[pData,pStd] = macbethPatchData(obj,mLocs,delta,fullData,dataType,height,width);
 
 % Plot the rectangles.
-if showSelection, macbethDrawRects(obj); end
+if showSelection, macbethDrawRects(obj,'on',height,width); end
 
 end
 
